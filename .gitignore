@@ -1,0 +1,24 @@
+# */bin/
+# */obj/
+# */.vs/
+
+# .NET Core
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log
+
+# Visual Studio
+*.sln.docstates
+*.suo
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
