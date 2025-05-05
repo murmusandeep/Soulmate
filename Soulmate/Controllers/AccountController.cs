@@ -23,16 +23,18 @@ namespace Soulmate.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto register)
         {
-            _logger.LogInfo($"Attempting to register user: {register.username}");
+            _logger.LogInfo($"Attempting to register user: {register.Username}");
 
             var user = await _accountBLL.Register(register);
 
-            _logger.LogInfo($"User registered successfully: {register.username}");
+            _logger.LogInfo($"User registered successfully: {register.Username}");
 
             var userDto = new UserDto
             {
-                Username = user.UserName,
-                Token = _tokenHelper.CreateToken(user)
+                Username = user.Username,
+                Token = _tokenHelper.CreateToken(user),
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
             };
 
             return Ok(userDto);
@@ -52,8 +54,11 @@ namespace Soulmate.Controllers
 
             var userDto = new UserDto
             {
-                Username = user.UserName,
-                Token = _tokenHelper.CreateToken(user)
+                Username = user.Username,
+                Token = _tokenHelper.CreateToken(user),
+                PhotoUrl = user.PhotoUrl,
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
             };
 
             return Ok(userDto);

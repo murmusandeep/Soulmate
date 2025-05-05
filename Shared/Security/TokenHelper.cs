@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Shared.Models;
+using Shared.DataTransferObject;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -29,11 +29,11 @@ namespace Shared.Security
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
         }
 
-        public string CreateToken(User user)
+        public string CreateToken(MemberDto user)
         {
             var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.NameId, user.UserName),
+            new Claim(JwtRegisteredClaimNames.NameId, user.Username),
             new Claim("UserId", user.Id.ToString())
         };
 

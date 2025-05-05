@@ -26,8 +26,7 @@ namespace SoulmateDAL
 
         public async Task<AppUser> GetUser(string username)
         {
-            return await _context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == username.ToLower());
+            return await _context.Users.Include(P => P.Photos).SingleOrDefaultAsync(u => u.UserName.ToLower() == username.ToLower());
         }
-
     }
 }

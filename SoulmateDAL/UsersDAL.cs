@@ -14,9 +14,9 @@ namespace SoulmateDAL
             _dataContext = dataContext;
         }
 
-        public async Task<AppUser> GetUser(string username)
+        public IQueryable<AppUser> GetUserAsync(string username)
         {
-            return await _dataContext.Users.AsNoTracking().SingleOrDefaultAsync(x => x.UserName == username.ToLower());
+            return _dataContext.Users.AsNoTracking().Where(x => x.UserName == username).AsQueryable();
         }
 
         public async Task<AppUser> GetUserById(int id)
@@ -24,9 +24,19 @@ namespace SoulmateDAL
             return await _dataContext.Users.FindAsync(id);
         }
 
-        public async Task<IEnumerable<AppUser>> GetUsers()
+        public async Task<AppUser> GetUserByUsername(string username)
         {
-            return await _dataContext.Users.ToListAsync();
+            return await _dataContext.Users.Include(p => p.Photos).FirstOrDefaultAsync(x => x.UserName == username);
+        }
+
+        public IQueryable<AppUser> GetUsers()
+        {
+            return _dataContext.Users.AsNoTracking();
+        }
+
+        public async Task<bool> SaveAllAsync()
+        {
+            return await _dataContext.SaveChangesAsync() > 0;
         }
     }
 }

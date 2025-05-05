@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using Shared.Models;
+using Shared.DataTransferObject;
+using Soulmate.Extensions;
 using SoulmateDAL.Entities;
 
 namespace Soulmate.Mapping
@@ -8,7 +9,16 @@ namespace Soulmate.Mapping
     {
         public MappingProfile()
         {
-            CreateMap<AppUser, User>();
+            CreateMap<AppUser, MemberDto>()
+                .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.Photos.FirstOrDefault(x => x.IsMain)!.Url))
+                .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.CalculateAge())).ReverseMap();
+            CreateMap<Photo, PhotoDto>();
+            CreateMap<MemberDto, AppUser>().ForMember(dest => dest.Id, opt => opt.Ignore());
+            CreateMap<MemberUpdateDto, AppUser>().ReverseMap();
+            CreateMap<RegisterDto, AppUser>().ReverseMap();
+            CreateMap<Message, MessageDto>()
+                .ForMember(dest => dest.SenderPhotoUrl, opt => opt.MapFrom(src => src.Sender.Photos.FirstOrDefault(x => x.IsMain)!.Url))
+                .ForMember(dest => dest.RecipientPhotoUrl, opt => opt.MapFrom(src => src.Recipient.Photos.FirstOrDefault(x => x.IsMain)!.Url));
         }
     }
 }

@@ -1,11 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SoulmateBLL.Interfaces;
+﻿using CloudinaryDotNet;
+using LoggerService;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Shared.Models;
+using Soulmate.Helper;
 using SoulmateBLL;
+using SoulmateBLL.Interfaces;
 using SoulmateDAL;
 using SoulmateDAL.Data;
 using SoulmateDAL.Interfaces;
-using LoggerService;
-using Shared.Security;
 
 namespace Soulmate.Extensions
 {
@@ -31,6 +34,26 @@ namespace Soulmate.Extensions
             services.AddSingleton<ILoggerManager, LoggerManager>();
             services.AddScoped<IAccountBLL, AccountBLL>();
             services.AddScoped<IAccountDAL, AccountDAL>();
+
+            services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
+
+            services.AddSingleton(provider =>
+            {
+                var config = provider.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+                var account = new Account(config.CloudName, config.ApiKey, config.ApiSecret);
+                return new Cloudinary(account);
+            });
+
+            services.AddScoped<IPhotoBLL, PhotoBLL>();
+            services.AddScoped<IPhotoDAL, PhotoDAL>();
+
+            services.AddScoped<LogUserActivity>();
+
+            services.AddScoped<ILikesBLL, LikesBLL>();
+            services.AddScoped<ILikesDAL, LikesDAL>();
+
+            services.AddScoped<IMessageBLL, MessageBLL>();
+            services.AddScoped<IMessageDAL, MessageDAL>();
 
             return services;
         }

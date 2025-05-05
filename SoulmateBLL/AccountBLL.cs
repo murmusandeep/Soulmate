@@ -2,7 +2,6 @@
 using LoggerService;
 using Shared.DataTransferObject;
 using Shared.Exceptions;
-using Shared.Models;
 using Shared.Security;
 using SoulmateBLL.Interfaces;
 using SoulmateDAL.Entities;
@@ -25,31 +24,30 @@ namespace SoulmateBLL
             _logger = logger;
         }
 
-        public async Task<User> Register(RegisterDto register)
+        public async Task<MemberDto> Register(RegisterDto register)
         {
-            if (await _accountDAL.UserExists(register.username))
+            if (await _accountDAL.UserExists(register.Username))
             {
-                _logger.LogWarn($"Registration failed: Username already exists - {register.username}");
+                _logger.LogWarn($"Registration failed: Username already exists - {register.Username}");
                 throw new Exception("Username already exists.");
             }
 
             _passwordHasher.CreatePasswordHash(register.password, out byte[] passwordHash, out byte[] passwordSalt);
 
-            var appUser = new AppUser
-            {
-                UserName = register.username.ToLower(),
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
-            };
+            var appUser = _mapper.Map<AppUser>(register);
+
+            appUser.UserName = register.Username.ToLower();
+            appUser.PasswordHash = passwordHash;
+            appUser.PasswordSalt = passwordSalt;
 
             await _accountDAL.Register(appUser);
 
-            _logger.LogInfo($"User created: {register.username}");
+            _logger.LogInfo($"User created: {register.Username}");
 
-            return _mapper.Map<User>(appUser);
+            return _mapper.Map<MemberDto>(appUser);
         }
 
-        public async Task<User> GetUser(string username, string password)
+        public async Task<MemberDto> GetUser(string username, string password)
         {
             var appUser = await _accountDAL.GetUser(username);
             if (appUser == null)
@@ -58,7 +56,7 @@ namespace SoulmateBLL
             if (!_passwordHasher.VerifyPasswordHash(password, appUser.PasswordHash, appUser.PasswordSalt))
                 throw new UnAuthorizedException("Invalid username or password.");
 
-            return _mapper.Map<User>(appUser);
+            return _mapper.Map<MemberDto>(appUser);
         }
     }
 }

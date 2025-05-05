@@ -4,8 +4,10 @@ namespace SoulmateDAL.Interfaces
 {
     public interface IUsersDAL
     {
-        Task<IEnumerable<AppUser>> GetUsers();
+        IQueryable<AppUser> GetUsers();
+        Task<AppUser> GetUserByUsername(string username);
         Task<AppUser> GetUserById(int id);
-        Task<AppUser> GetUser(string username);
+        IQueryable<AppUser> GetUserAsync(string username);
+        Task<bool> SaveAllAsync();
     }
 }

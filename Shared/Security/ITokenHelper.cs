@@ -1,9 +1,9 @@
-﻿using Shared.Models;
+﻿using Shared.DataTransferObject;
 
 namespace Shared.Security
 {
     public interface ITokenHelper
     {
-        string CreateToken(User user);
+        string CreateToken(MemberDto user);
     }
 }
