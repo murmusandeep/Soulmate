@@ -23,7 +23,7 @@ namespace Shared.DataTransferObject
         public string? Country { get; set; }
 
         [Required]
-        [StringLength(8, MinimumLength = 4)]
+        [StringLength(20, MinimumLength = 4)]
         public string password { get; set; } = string.Empty;
     }
 }

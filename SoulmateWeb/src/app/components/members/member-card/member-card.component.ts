@@ -3,6 +3,7 @@ import { Member } from '../../../_models/member';
 import { RouterLink } from '@angular/router';
 import { LikeService } from '../../../_services/like.service';
 import { MessageService } from 'primeng/api';
+import { PresenceService } from '../../../_services/presence.service';
 
 @Component({
   selector: 'app-member-card',
@@ -14,8 +15,10 @@ import { MessageService } from 'primeng/api';
 export class MemberCardComponent {
   private likeService = inject(LikeService);
   private messageService = inject(MessageService);
+  private presenceService = inject(PresenceService);
   member = input.required<Member>();
   hasLiked = computed(() => this.likeService.likeIds().includes(this.member().id));
+  isOnline = computed(() => this.presenceService.onlineUsers().includes(this.member().username));
 
   toggleLike() {
     const memberId = this.member().id;

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shared.Models;
 using Soulmate.Helper;
+using Soulmate.SignalR;
 using SoulmateBLL;
 using SoulmateBLL.Interfaces;
 using SoulmateDAL;
@@ -25,6 +26,7 @@ namespace Soulmate.Extensions
             {
                 options.AddPolicy("CorsPolicy", builder => builder
                 .WithOrigins("https://localhost:4200", "http://localhost:4200")
+                .AllowCredentials()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
             });
@@ -54,6 +56,12 @@ namespace Soulmate.Extensions
 
             services.AddScoped<IMessageBLL, MessageBLL>();
             services.AddScoped<IMessageDAL, MessageDAL>();
+
+            services.AddScoped<IAdminBLL, AdminBLL>();
+            services.AddScoped<IAdminDAL, AdminDAL>();
+
+            services.AddSignalR();
+            services.AddSingleton<PresenceTracker>();
 
             return services;
         }

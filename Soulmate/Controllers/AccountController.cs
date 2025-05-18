@@ -27,12 +27,15 @@ namespace Soulmate.Controllers
 
             var user = await _accountBLL.Register(register);
 
+            if (user == null || user.Username == null || user.KnownAs == null || user.Gender == null)
+                return Unauthorized("Invalid username");
+
             _logger.LogInfo($"User registered successfully: {register.Username}");
 
             var userDto = new UserDto
             {
                 Username = user.Username,
-                Token = _tokenHelper.CreateToken(user),
+                Token = await _tokenHelper.CreateToken(user),
                 KnownAs = user.KnownAs,
                 Gender = user.Gender
             };
@@ -50,12 +53,15 @@ namespace Soulmate.Controllers
 
             var user = await _accountBLL.GetUser(loginDto.Username, loginDto.Password);
 
+            if (user == null || user.Username == null || user.KnownAs == null || user.Gender == null)
+                return Unauthorized("Invalid username");
+
             _logger.LogInfo($"Login successful for user: {loginDto.Username}");
 
             var userDto = new UserDto
             {
                 Username = user.Username,
-                Token = _tokenHelper.CreateToken(user),
+                Token = await _tokenHelper.CreateToken(user),
                 PhotoUrl = user.PhotoUrl,
                 KnownAs = user.KnownAs,
                 Gender = user.Gender

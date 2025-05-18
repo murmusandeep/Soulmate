@@ -1,6 +1,12 @@
 using LoggerService;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using NLog;
 using Soulmate.Extensions;
+using Soulmate.Helper.Seed;
+using Soulmate.SignalR;
+using SoulmateDAL.Data;
+using SoulmateDAL.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +44,26 @@ app.UseAuthorization();
 
 // Controller routing
 app.MapControllers();
+app.MapHub<PresenceHub>("hubs/presence");
+app.MapHub<MessageHub>("hubs/message");
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+
+try
+{
+    var context = services.GetRequiredService<DataContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManger = services.GetRequiredService<RoleManager<AppRole>>();
+    await context.Database.MigrateAsync();
+    await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE [Connections]");
+    await Seed.SeedUsers(userManager, roleManger);
+}
+catch (Exception ex)
+{
+    var logger = services.GetService<ILogger<Program>>();
+    logger.LogError(ex, "Error occurred during migration");
+}
 
 app.Run();
 

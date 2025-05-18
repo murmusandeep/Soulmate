@@ -21,7 +21,20 @@ namespace SoulmateBLL
             _messageDAL = messageDAL;
             _mapper = mapper;
         }
-        public async Task<MessageDto> AddMessage(string username, CreateMessageDto createMessageDto)
+
+        public void UpdateGroup(GroupDto groupDto)
+        {
+            var group = _mapper.Map<Group>(groupDto);
+            _messageDAL.UpdateGroup(group);
+        }
+
+        public void AddGroup(GroupDto groupDto)
+        {
+            var group = _mapper.Map<Group>(groupDto);
+            _messageDAL.AddGroup(group);
+        }
+
+        public async Task<(bool Success, MessageDto Message)> AddMessage(string username, CreateMessageDto createMessageDto)
         {
             if (username == createMessageDto.RecipientUsername.ToLower())
                 throw new BadRequestException("You cannot send message to yourself");
@@ -29,7 +42,7 @@ namespace SoulmateBLL
             var sender = await _usersDAL.GetUserByUsername(username);
             var recipent = await _usersDAL.GetUserByUsername(createMessageDto.RecipientUsername);
 
-            if (recipent == null)
+            if (recipent == null || recipent.UserName == null || sender.UserName == null)
                 throw new UserNotFoundException(createMessageDto.RecipientUsername);
 
             var message = new Message
@@ -41,11 +54,20 @@ namespace SoulmateBLL
                 Content = createMessageDto.Content,
             };
 
+            var groupName = GetGroupName(sender.UserName, recipent.UserName);
+            var group = await _messageDAL.GetMessageGroup(groupName);
+
+            if (group != null && group.Connections.Any(x => x.Username == recipent.UserName))
+            {
+                message.DateRead = DateTime.UtcNow;
+            }
+
             _messageDAL.AddMessage(message);
 
-            if (await _usersDAL.SaveAllAsync()) return _mapper.Map<MessageDto>(message);
+            var result = await _usersDAL.SaveAllAsync();
+            var messageDto = _mapper.Map<MessageDto>(message);
 
-            throw new BadRequestException("Failed to send message");
+            return (result, messageDto);
         }
 
         public async Task<bool> DeleteMessage(string username, int id)
@@ -67,6 +89,20 @@ namespace SoulmateBLL
             }
 
             return await _usersDAL.SaveAllAsync();
+        }
+
+        public async Task<ConnectionDto> GetConnection(string connectionId)
+        {
+            var connection = await _messageDAL.GetConnection(connectionId);
+
+            return _mapper.Map<ConnectionDto>(connection);
+        }
+
+        public async Task<GroupDto> GetMessageGroup(string groupName)
+        {
+            var group = await _messageDAL.GetMessageGroup(groupName);
+
+            return _mapper.Map<GroupDto>(group);
         }
 
         public async Task<PagedList<MessageDto>> GetMessagesForUser(MessageParams messageParams)
@@ -102,6 +138,24 @@ namespace SoulmateBLL
             }
 
             return _mapper.Map<IEnumerable<MessageDto>>(result);
+        }
+
+        public void RemoveConnection(ConnectionDto connectionDto)
+        {
+            var connection = _mapper.Map<Connection>(connectionDto);
+            _messageDAL.RemoveConnection(connection);
+        }
+
+        public async Task<bool> SaveAllAsync()
+        {
+            return await _usersDAL.SaveAllAsync();
+        }
+
+        private string GetGroupName(string caller, string? other)
+        {
+            var stringCompare = string.CompareOrdinal(caller, other) < 0;
+
+            return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
         }
     }
 }

@@ -11,23 +11,22 @@ import { TimeagoModule } from 'ngx-timeago';
   templateUrl: './member-message.component.html',
   styleUrl: './member-message.component.scss'
 })
-export class MemberMessageComponent {
+export class MemberMessageComponent implements OnInit {
 
   @ViewChild('messageForm') messageForm?: NgForm;
 
   messageService = inject(MessageService);
   username = input.required<string>();
-  messages = input.required<Message[]>();
-  updateMessages = output<Message>();
   messageContent = '';
+
+  ngOnInit(): void {
+    console.log(this.messageService.messageThread());
+  }
 
   sendMessage(){
     if (!this.username()) return;
-    this.messageService.sendMessage(this.username(), this.messageContent).subscribe({
-      next: message => {
-        this.updateMessages.emit(message);
-        this.messageForm?.resetForm();
-      }
-    })
+        this.messageService.sendMessage(this.username(), this.messageContent).then(() => {
+      this.messageForm?.reset();
+    });
   }
 }

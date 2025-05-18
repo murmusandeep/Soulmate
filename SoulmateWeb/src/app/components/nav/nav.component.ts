@@ -4,11 +4,12 @@ import { ImportsModule } from '../../_shared/imports';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { MemberService } from '../../_services/member.service';
+import { HasRoleDirective } from '../../_directives/has-role.directive';
 
 @Component({
   selector: 'app-nav',
   standalone: true,
-  imports: [ImportsModule, RouterLink, RouterLinkActive, BsDropdownModule],
+  imports: [ImportsModule, RouterLink, RouterLinkActive, BsDropdownModule, HasRoleDirective],
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']
 })

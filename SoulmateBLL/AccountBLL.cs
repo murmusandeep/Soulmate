@@ -32,15 +32,19 @@ namespace SoulmateBLL
                 throw new Exception("Username already exists.");
             }
 
-            _passwordHasher.CreatePasswordHash(register.password, out byte[] passwordHash, out byte[] passwordSalt);
-
             var appUser = _mapper.Map<AppUser>(register);
 
             appUser.UserName = register.Username.ToLower();
-            appUser.PasswordHash = passwordHash;
-            appUser.PasswordSalt = passwordSalt;
 
-            await _accountDAL.Register(appUser);
+            var result = await _accountDAL.Register(appUser, register.password);
+
+            if (!result.Succeeded)
+                throw new BadRequestException("Unable to Register");
+
+            var roleResult = await _accountDAL.AddUserRole(appUser);
+
+            if (!roleResult.Succeeded)
+                throw new BadRequestException("Unable to Add Role");
 
             _logger.LogInfo($"User created: {register.Username}");
 
@@ -50,10 +54,13 @@ namespace SoulmateBLL
         public async Task<MemberDto> GetUser(string username, string password)
         {
             var appUser = await _accountDAL.GetUser(username);
+
             if (appUser == null)
                 throw new UnAuthorizedException("Invalid username or password.");
 
-            if (!_passwordHasher.VerifyPasswordHash(password, appUser.PasswordHash, appUser.PasswordSalt))
+            var result = await _accountDAL.CheckUserValid(appUser, password);
+
+            if (!result)
                 throw new UnAuthorizedException("Invalid username or password.");
 
             return _mapper.Map<MemberDto>(appUser);

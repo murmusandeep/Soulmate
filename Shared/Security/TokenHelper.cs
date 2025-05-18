@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using Shared.DataTransferObject;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Shared.DataTransferObject;
+using SoulmateDAL.Entities;
 
 namespace Shared.Security
 {
@@ -12,8 +14,9 @@ namespace Shared.Security
         private readonly SymmetricSecurityKey _key;
         private readonly string _issuer;
         private readonly string _audience;
+        private readonly UserManager<AppUser> _userManager;
 
-        public TokenHelper(IConfiguration config)
+        public TokenHelper(IConfiguration config, UserManager<AppUser> userManager)
         {
             var jwtSettings = config.GetSection("JwtSettings");
 
@@ -27,15 +30,26 @@ namespace Shared.Security
             }
 
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
+            _userManager = userManager;
         }
 
-        public string CreateToken(MemberDto user)
+        public async Task<string> CreateToken(MemberDto user)
         {
+            if (user.Username == null)
+                throw new Exception("No username for user");
+
             var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.NameId, user.Username),
-            new Claim("UserId", user.Id.ToString())
-        };
+            {
+                new Claim(JwtRegisteredClaimNames.NameId, user.Username),
+                new Claim("UserId", user.Id.ToString())
+            };
+
+            var appUser = await _userManager.FindByIdAsync(user.Id.ToString());
+            if (appUser == null)
+                throw new Exception("User not found.");
+            var roles = await _userManager.GetRolesAsync(appUser);
+
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var cred = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 

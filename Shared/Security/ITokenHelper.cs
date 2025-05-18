@@ -4,6 +4,6 @@ namespace Shared.Security
 {
     public interface ITokenHelper
     {
-        string CreateToken(MemberDto user);
+        Task<string> CreateToken(MemberDto user);
     }
 }
